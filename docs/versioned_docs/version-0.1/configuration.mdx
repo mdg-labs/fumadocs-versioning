@@ -1,0 +1,47 @@
+---
+title: Configuration
+description: Options for resolveVersions() and versionedSource().
+---
+
+`resolveVersions()` and `versionedSource()` take the same options. Names and defaults follow Docusaurus.
+
+| Option | Default | |
+|---|---|---|
+| `versions` | — | The contents of `versions.json`, newest first |
+| `lastVersion` | newest version, or `current` | The version served at the base URL |
+| `includeCurrentVersion` | `true` | Publish the current docs |
+| `onlyIncludeVersions` | all | Build only these versions, e.g. `['current', '1.0']` for quick local builds. Must include the last version. |
+| `versionOptions` | — | Per version, keyed by its name or `current` (see below) |
+| `rootType` | `version` | `versionedSource()` only: the `root` type of the version folders |
+
+## Per-version options
+
+| Option | Default | |
+|---|---|---|
+| `label` | the name, or `Next` for current | Label in the dropdown and banner |
+| `path` | empty for the last version, `next` for current, else the name | URL segment after the base URL |
+| `banner` | `unreleased` above the last version, `unmaintained` below it, `none` for it | `none`, `unreleased` or `unmaintained` |
+| `noIndex` | `false` | Ask search engines not to index the version |
+
+```ts
+resolveVersions({
+  versions,
+  lastVersion: '2.0',
+  versionOptions: {
+    current: { label: 'Main', path: 'main', noIndex: true },
+    '1.0': { banner: 'none' },
+  },
+});
+```
+
+## Build errors
+
+Every error starts with `fumadocs-versioning:`.
+
+| Error | Fix |
+|---|---|
+| `versions.json lists X, but version-X/ has no page` | Run `version X`, or `remove X` |
+| `the page … of the last version would be served at the path of version …` | A top-level page of the latest version shares its name with another version's path, e.g. `next.mdx`. Rename it or change that version's `path`. |
+| `versions A and B share the path` | Give one of them another `path` |
+| `lastVersion X is not a built version` | Check the name against `versions.json` |
+| `onlyIncludeVersions must include the last version` | Add the last version to the list |

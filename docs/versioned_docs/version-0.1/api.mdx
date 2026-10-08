@@ -1,0 +1,56 @@
+---
+title: API
+description: Every export of fumadocs-versioning.
+---
+
+## `fumadocs-versioning`
+
+### `resolveVersions(options)`
+
+Returns a `VersionsConfig`: `{ versions, lastVersion }`, where `versions` lists every built version in dropdown order (current first, then newest to oldest). Each is a `VersionInfo`:
+
+```ts
+interface VersionInfo {
+  name: string; // 'current' or the name in versions.json
+  label: string;
+  path: string; // URL segment, '' for the last version
+  isLast: boolean;
+  isCurrent: boolean;
+  banner: 'none' | 'unreleased' | 'unmaintained';
+  noIndex: boolean;
+}
+```
+
+The config is plain JSON, safe to use in client components.
+
+### `versionedSource({ current, versioned, ...options | config })`
+
+Combines the current docs and the snapshots into one source for `loader()`. Takes either the [options](./configuration.mdx) or a `config` from `resolveVersions()`. Returns `{ source, config }`.
+
+### Page helpers
+
+| Function | Returns |
+|---|---|
+| `getPageVersion(config, page)` | The page's `VersionInfo` |
+| `getVersionRelativePath(page)` | The page's path inside its version, e.g. `guide/install.mdx` |
+| `getVersionAlternates(source, config, page)` | `{ version, url, exact }[]`: the same page in each version, or that version's start page (`exact: false`) |
+| `getLastVersionAlternate(source, config, page)` | The same, for the latest version only |
+| `getVersionMetadata(config, page)` | `{ robots: { index: false, follow: true } }` for a `noIndex` version, else `{}` |
+| `getVersionFromPathname(config, baseUrl, pathname)` | The version of a URL, or `undefined` outside the docs |
+| `findVersion(config, name)`, `getLastVersion(config)` | A `VersionInfo` by name, and the latest one |
+
+## `fumadocs-versioning/ui`
+
+`<VersionBanner source config page siteName? render? />`: the banner for unreleased and unmaintained versions. It renders nothing on a version whose banner is `none`. `render` receives `{ version, last, latest }`.
+
+## `fumadocs-versioning/search`
+
+`versionedBuildIndex(config)`: a `buildIndex` for `createFromSource()` that tags each page with its version.
+
+## `fumadocs-versioning/client`
+
+`useVersion(config, baseUrl)`: the version of the page being viewed.
+
+## CLI
+
+`fumadocs-versioning version | remove | list`. See [Cutting versions](./cutting-versions.mdx).

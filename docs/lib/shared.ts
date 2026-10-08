@@ -1,6 +1,9 @@
 import { createGetUrl } from 'fumadocs-core/source';
 
-export const appName = 'Acme';
+export const appName = 'fumadocs-versioning';
+
+// Set when the site is served below a path, e.g. /fumadocs-versioning on GitHub Pages.
+export const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 export const docsRoute = '/docs';
 export const docsImageRoute = '/og/docs';
 export const docsContentRoute = '/llms.mdx/docs';
@@ -10,7 +13,7 @@ export const gitConfig = {
   repo: 'fumadocs-versioning',
   branch: 'main',
   // The app's folder in the repository.
-  dir: 'example',
+  dir: 'docs',
 };
 
 const getContentUrl = createGetUrl(docsContentRoute);

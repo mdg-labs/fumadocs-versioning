@@ -45,7 +45,8 @@
     "dist"
   ],
   "workspaces": [
-    "example"
+    "example",
+    "docs"
   ],
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json && chmod +x dist/cli.js",

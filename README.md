@@ -2,6 +2,8 @@
 
 Docusaurus-style versioned docs for [Fumadocs](https://fumadocs.dev).
 
+**Documentation: https://mdg-labs.github.io/fumadocs-versioning/**. The site is built with this package and versioned with it.
+
 - `fumadocs-versioning version 1.0` snapshots `content/docs` into `versioned_docs/version-1.0/` and records it in `versions.json`.
 - The last version is served at `/docs`, the current docs at `/docs/next`, and older versions at `/docs/<version>`.
 - Fumadocs UI shows a version dropdown in the sidebar. Switching versions keeps you on the same page when it exists in the other version.
@@ -153,6 +155,7 @@ From `fumadocs-versioning`:
 
 - **Links between pages:** use relative file links (`[Install](./guide/install.mdx)`) with Fumadocs' `createRelativeLink`. They resolve inside the version being read. Absolute links like `/docs/guide/install` always point at the last version.
 - **Static export:** set `trailingSlash: true` in `next.config` when you use `output: 'export'`. Without it, Next writes both `docs/0.9.html` and a `docs/0.9/` folder, and static hosts such as GitHub Pages serve the folder.
+- **Hosting below a path** (e.g. a GitHub Pages project site): besides Next's `basePath`, pass ``from: `${basePath}/api/search` `` to `staticClient()`. Fumadocs only adds the base path itself under Vite.
 - **Page paths:** a page's `page.path` is prefixed with its version (`current/…`, `1.0/…`). The URLs are not affected.
 - **Coming from Docusaurus:** `versioned_docs/version-*` and `versions.json` use the same layout. Sidebars become `meta.json` files inside each version.
 - **Not supported yet:** Fumadocs i18n, and a page in the last version whose first URL segment matches another version's path. That page is refused at build time.
@@ -166,6 +169,10 @@ npm install
 npm run build
 npm run build --workspace example   # static export in example/out
 ```
+
+## Documentation site
+
+[`docs/`](./docs) holds the documentation site: the current docs in `docs/content/docs`, the released ones in `docs/versioned_docs`. `pages.yml` deploys it to GitHub Pages on every push to `main`. When a release changes the docs, snapshot them with `npx fumadocs-versioning version X.Y` in `docs/`.
 
 ## Releasing
 

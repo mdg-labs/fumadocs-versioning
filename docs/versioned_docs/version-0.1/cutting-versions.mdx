@@ -1,0 +1,59 @@
+---
+title: Cutting versions
+description: Snapshot a release, and where doc changes go afterwards.
+---
+
+## Make a version
+
+When a release ships, snapshot the current docs:
+
+```bash
+npx fumadocs-versioning version 1.0
+```
+
+This copies `content/docs` to `versioned_docs/version-1.0/` and puts `1.0` at the top of `versions.json`. Commit both. From then on:
+
+| URL | Serves |
+|---|---|
+| `/docs` | 1.0, the latest version |
+| `/docs/next` | `content/docs`, with the "unreleased" banner |
+| `/docs/0.9` | an older version, with the "unmaintained" banner |
+
+## Commands
+
+| Command | |
+|---|---|
+| `version <name>` | Snapshot the current docs as `<name>` |
+| `remove <name>` | Delete the snapshot and its `versions.json` entry |
+| `list` | Print the versions, newest first |
+
+| Option | Default | |
+|---|---|---|
+| `--content <dir>` | `content/docs` | The current docs |
+| `--versioned-dir <dir>` | `versioned_docs` | The snapshots |
+| `--versions-file <file>` | `versions.json` | The version list |
+| `--exclude <path>` | — | A path under the current docs to leave out, e.g. pages a build regenerates. Repeatable. |
+| `--cwd <dir>` | working directory | The project directory |
+
+You can also set them in `fumadocs-versioning.json` as `content`, `versionedDir`, `versionsFile` and `exclude`.
+
+Version names may use letters, digits, `.`, `-` and `_`. `current` is reserved for the current docs.
+
+<Callout type="warn">
+  Don't add a version to `versions.json` by hand. A listed version without a snapshot fails the build. Use `version` and `remove`.
+</Callout>
+
+## Where changes go
+
+- **New behaviour:** edit `content/docs` only. It ships with the next snapshot.
+- **A fix to released docs:** edit `content/docs`, and also the snapshot of each version where the mistake matters, usually only the latest. A snapshot is plain files, so the fix is a normal commit.
+
+## Links between pages
+
+Use relative file links:
+
+```mdx
+See [Install](./guide/install.mdx).
+```
+
+They resolve inside the version being read, through Fumadocs' `createRelativeLink`, which the templates already use. An absolute link such as `/docs/guide/install` always points at the latest version, even from an old snapshot.

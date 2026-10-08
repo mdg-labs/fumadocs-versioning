@@ -1,0 +1,100 @@
+---
+title: Getting started
+description: Add versioned docs to a Fumadocs site.
+---
+
+## Requirements
+
+- `fumadocs-core` and `fumadocs-ui` 16.16 or later
+- `fumadocs-mdx` for the content collections
+- No Fumadocs i18n: it isn't supported yet
+
+## Install
+
+```bash
+npm install fumadocs-versioning
+```
+
+Create a `versions.json` at the project root containing `[]`. The `versioned_docs/` folder can be missing until the first snapshot. Until then the current docs are served at `/docs`, exactly as before.
+
+## 1. Resolve the versions
+
+Put this in a module that both server and client components can import:
+
+```ts title="lib/versions.ts"
+import { resolveVersions } from 'fumadocs-versioning';
+import versions from '../versions.json';
+
+export const versionsConfig = resolveVersions({
+  versions,
+  // Keep the unreleased docs out of search engines once a release exists.
+  versionOptions: { current: { noIndex: versions.length > 0 } },
+});
+```
+
+## 2. Combine the collections
+
+Add a second collection for the snapshots, with the same options as your docs collection, and pass both to `versionedSource()`:
+
+```ts title="lib/source.ts"
+import { loader } from 'fumadocs-core/source';
+import { defineDocs } from 'fumadocs-mdx/macro';
+import { versionedSource } from 'fumadocs-versioning';
+import { versionsConfig } from './versions';
+
+const docs = defineDocs({ dir: 'content/docs' });
+const versionedDocs = defineDocs({ dir: 'versioned_docs' });
+
+const versioned = versionedSource({
+  current: docs.toFumadocsSource(),
+  versioned: versionedDocs.toFumadocsSource(),
+  config: versionsConfig,
+});
+
+export const source = loader({ baseUrl: '/docs', source: versioned.source });
+```
+
+If your project defines its collections in `source.config.ts`, add the `versioned_docs` collection there instead.
+
+## 3. The version dropdown
+
+Nothing to do. `<DocsLayout tree={source.getPageTree()}>` shows a dropdown for the version folders.
+
+## 4. Banner and metadata
+
+Add the banner as the first child of `<DocsPage>`, and merge the robots metadata into `generateMetadata()`:
+
+```tsx title="app/docs/[[...slug]]/page.tsx"
+import { getVersionMetadata } from 'fumadocs-versioning';
+import { VersionBanner } from 'fumadocs-versioning/ui';
+import { versionsConfig } from '@/lib/versions';
+
+<DocsPage toc={page.data.toc}>
+  <VersionBanner source={source} config={versionsConfig} page={page} siteName="Acme" />
+  <DocsTitle>{page.data.title}</DocsTitle>
+  …
+</DocsPage>
+
+export async function generateMetadata(props) {
+  // …
+  return { title: page.data.title, ...getVersionMetadata(versionsConfig, page) };
+}
+```
+
+`siteName` only prefixes the label in the banner text ("unreleased documentation for Acme Next"). Pass `render` to replace the banner markup.
+
+## 5. Edit links
+
+A page's `page.path` now starts with its version (`current/guide.mdx`, `1.0/guide.mdx`). URLs don't change, but code that maps `page.path` to a file must strip the version:
+
+```ts
+import { getPageVersion, getVersionRelativePath } from 'fumadocs-versioning';
+
+function getFilePath(page: { path: string }) {
+  const version = getPageVersion(versionsConfig, page);
+  const dir = version.isCurrent ? 'content/docs' : `versioned_docs/version-${version.name}`;
+  return `${dir}/${getVersionRelativePath(page)}`;
+}
+```
+
+Next: [cut your first version](./cutting-versions.mdx), and optionally [limit search to the version being read](./search.mdx).

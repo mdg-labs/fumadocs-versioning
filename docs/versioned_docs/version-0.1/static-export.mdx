@@ -1,0 +1,48 @@
+---
+title: Static export
+description: Host versioned docs on GitHub Pages or any static host.
+---
+
+Everything works with `output: 'export'`: the version dropdown, banners, search and `llms.txt` are all static. This site is a static export on GitHub Pages.
+
+## Set `trailingSlash`
+
+```js title="next.config.mjs"
+export default withMDX({
+  output: 'export',
+  trailingSlash: true,
+});
+```
+
+Without it, Next writes both `docs/0.9.html` and a `docs/0.9/` folder for a version with subpages, and static hosts serve the folder listing instead of the page. With it, every page is a folder with an `index.html`.
+
+## Hosting below a path
+
+GitHub Pages serves a project site below its repository name, such as `/fumadocs-versioning`. Set Next's `basePath`, and pass the same path to the static search client, which doesn't add it under Next.js:
+
+```js title="next.config.mjs"
+basePath: process.env.NEXT_PUBLIC_BASE_PATH || undefined,
+```
+
+```tsx title="components/search.tsx"
+staticClient({ tag: version, from: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/api/search` })
+```
+
+Links, the dropdown and `useVersion()` need nothing: Next adds the base path to links and leaves it out of `usePathname()`.
+
+## GitHub Actions
+
+Build with `actions/configure-pages`, which gives you the base path, then upload `out/`:
+
+```yaml
+- id: pages
+  uses: actions/configure-pages@v6
+- run: npm run build
+  env:
+    NEXT_PUBLIC_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+- uses: actions/upload-pages-artifact@v5
+  with:
+    path: out
+```
+
+This site's [workflow](https://github.com/mdg-labs/fumadocs-versioning/blob/main/.github/workflows/pages.yml) is a complete example.

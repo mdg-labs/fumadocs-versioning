@@ -1,0 +1,28 @@
+---
+title: Introduction
+description: Docusaurus-style versioned docs for Fumadocs.
+---
+
+fumadocs-versioning is an npm package that adds versioned documentation to a [Fumadocs](https://fumadocs.dev) site. You publish the docs for each release side by side, for example 0.9, 1.0 and the unreleased next version, and readers pick the one that matches what they run.
+
+It works the way [Docusaurus versioning](https://docusaurus.io/docs/versioning) does:
+
+- A command freezes a copy of your current docs as a new version.
+- A `versions.json` file lists the versions, newest first.
+- The latest version is served at `/docs`, the docs in progress at `/docs/next`, and older versions at `/docs/<version>`.
+- The sidebar has a version dropdown. Switching versions keeps you on the same page when it exists in the other version.
+- Unreleased and unmaintained versions get a banner that links to the same page in the latest version.
+
+<Callout title="These docs are versioned with it">
+  The dropdown at the top of the sidebar switches between the released docs (0.1) and the docs in progress (Next). Open a page, switch, and you stay on it.
+</Callout>
+
+## How it works
+
+The package combines your current docs and every snapshot into **one** Fumadocs source. Each version becomes a root folder, the kind Fumadocs UI shows as a sidebar dropdown. The project keeps a single `loader()`, so search, `llms.txt`, OG images, relative links and static export work over every version without extra code.
+
+## Next steps
+
+- [Getting started](./getting-started.mdx): add it to a Fumadocs site.
+- [Cutting versions](./cutting-versions.mdx): snapshot a release and keep old versions fixed.
+- [Static export](./static-export.mdx): host the result on GitHub Pages or any static host.

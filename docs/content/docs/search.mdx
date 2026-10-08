@@ -1,0 +1,39 @@
+---
+title: Search per version
+description: Limit search results to the version being read.
+---
+
+Every version is in one search index. To search only the version being read, tag each entry with its version, then filter by that tag in the dialog.
+
+## Tag the index
+
+```ts title="app/api/search/route.ts"
+import { createFromSource } from 'fumadocs-core/search/server';
+import { versionedBuildIndex } from 'fumadocs-versioning/search';
+import { versionsConfig } from '@/lib/versions';
+
+export const { staticGET: GET } = createFromSource(source, {
+  buildIndex: versionedBuildIndex(versionsConfig),
+});
+```
+
+The tag is the version's name: `current` for the current docs, otherwise the name in `versions.json`.
+
+## Filter in the dialog
+
+```tsx title="components/search.tsx"
+'use client';
+import { useDocsSearch } from 'fumadocs-core/search/client';
+import { staticClient } from 'fumadocs-core/search/client/orama-static';
+import { useVersion } from 'fumadocs-versioning/client';
+import { versionsConfig } from '@/lib/versions';
+
+// Outside the docs, e.g. on the home page, search the latest version.
+const version = useVersion(versionsConfig, '/docs')?.name ?? versionsConfig.lastVersion;
+const { search, setSearch, query } = useDocsSearch(
+  { client: staticClient({ tag: version }) },
+  [version],
+);
+```
+
+Try it here: search for "trailingSlash" in 0.1 and in Next.

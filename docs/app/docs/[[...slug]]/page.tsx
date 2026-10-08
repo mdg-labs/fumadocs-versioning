@@ -11,7 +11,7 @@ import { notFound } from 'next/navigation';
 import { getMDXComponents } from '@/components/mdx';
 import type { Metadata } from 'next';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
-import { appName, getPageImageUrl, getPageMarkdownUrl, gitConfig } from '@/lib/shared';
+import { appName, basePath, getPageImageUrl, getPageMarkdownUrl, gitConfig } from '@/lib/shared';
 import { getPageVersion, getVersionMetadata, getVersionRelativePath } from 'fumadocs-versioning';
 import { VersionBanner } from 'fumadocs-versioning/ui';
 import { versionsConfig } from '@/lib/versions';
@@ -69,7 +69,7 @@ export async function generateMetadata(props: PageProps<'/docs/[[...slug]]'>): P
     title: page.data.title,
     description: page.data.description,
     openGraph: {
-      images: getPageImageUrl(page).url,
+      images: `${basePath}${getPageImageUrl(page).url}`,
     },
     ...getVersionMetadata(versionsConfig, page),
   };

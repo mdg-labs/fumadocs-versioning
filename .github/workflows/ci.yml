@@ -29,7 +29,7 @@ jobs:
       - run: npm pack --dry-run
 
   example:
-    name: Example static export
+    name: Example and docs static exports
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -44,6 +44,11 @@ jobs:
       - run: npm run build --workspace example
         env:
           NEXT_TELEMETRY_DISABLED: '1'
+      # The documentation site, as pages.yml builds it for GitHub Pages.
+      - run: npm run build --workspace docs
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+          NEXT_PUBLIC_BASE_PATH: /fumadocs-versioning
       # The Docusaurus layout: the last version at /docs, the current docs at
       # /docs/next, older versions below their name.
       - name: Check the exported layout
