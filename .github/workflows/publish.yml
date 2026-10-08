@@ -1,0 +1,92 @@
+name: Publish
+
+# Publishes the package to npm when a release is published (normally a draft
+# made by release-draft.yml). The release tag must be v<version> of the
+# package.json it points at.
+#
+# Authentication is npm trusted publishing (OIDC): no token is stored here.
+# On npmjs.com, the package's Settings > Trusted publishing must name this
+# repository and the workflow file publish.yml.
+#
+# A version with a prerelease part (0.2.0-stage, 1.0.0-rc.1) is published
+# under the dist-tag named by that part's first word (stage, rc), so `latest`
+# only ever moves to a stable version. A version already on npm is skipped,
+# so re-running the workflow is safe.
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish to npm
+    if: github.repository == 'mdg-labs/fumadocs-versioning'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+
+      # Trusted publishing needs npm 11.5.1 or later.
+      - run: npm install --global npm@11.19.0
+
+      - name: Check the tag and pick the dist-tag
+        id: meta
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          name="$(node -p "require('./package.json').name")"
+          version="$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "v$version" ]; then
+            echo "::error::release tag $TAG does not match package.json version $version (expected v$version)"
+            exit 1
+          fi
+
+          case "$version" in
+            *-*)
+              pre="${version#*-}"
+              dist_tag="$(printf '%s' "${pre%%.*}" | sed 's/[^A-Za-z].*$//')"
+              [ -n "$dist_tag" ] || dist_tag=next
+              ;;
+            *) dist_tag=latest ;;
+          esac
+          echo "dist_tag=$dist_tag" >> "$GITHUB_OUTPUT"
+
+          if npm view "$name@$version" version > /dev/null 2>&1; then
+            echo "::notice::$name@$version is already on npm; nothing to publish"
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Publishing $name@$version under dist-tag $dist_tag"
+
+      - if: steps.meta.outputs.published == 'false'
+        run: npm ci
+      - if: steps.meta.outputs.published == 'false'
+        run: npm run typecheck
+      # Build first: the CLI test runs the built command.
+      - if: steps.meta.outputs.published == 'false'
+        run: npm run build
+      - if: steps.meta.outputs.published == 'false'
+        run: npm test
+
+      - name: Publish
+        if: steps.meta.outputs.published == 'false'
+        env:
+          DIST_TAG: ${{ steps.meta.outputs.dist_tag }}
+        run: npm publish --access public --tag "$DIST_TAG"

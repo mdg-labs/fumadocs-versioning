@@ -159,6 +159,16 @@ npm run build
 npm run build --workspace example   # static export in example/out
 ```
 
+## Releasing
+
+The `version` in `package.json` drives releases:
+
+1. Bump `version` in `package.json` and merge it to `main`.
+2. `release-draft.yml` tags that commit `v<version>` and opens a draft release with generated notes.
+3. Edit the notes if needed, then publish the draft. `publish.yml` checks that the tag matches `package.json`, runs the checks and publishes to npm through trusted publishing.
+
+A prerelease such as `0.2.0-stage` goes out under the dist-tag `stage`, so `latest` only moves to stable versions. A version already on npm is skipped.
+
 ## License
 
 MIT

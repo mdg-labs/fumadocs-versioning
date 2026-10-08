@@ -1,0 +1,67 @@
+name: Release draft
+
+# The version in package.json drives releases. When a push to main changes
+# package.json to a version that has no v<version> tag yet, this tags that
+# commit and opens a draft release with generated notes. Publishing the draft
+# runs publish.yml, which publishes the package to npm.
+#
+# A package.json change that keeps the version (a dependency bump, say) finds
+# the tag already there and does nothing. workflow_dispatch drafts the current
+# version by hand, e.g. for a version published before this workflow existed.
+
+on:
+  push:
+    branches: [main]
+    paths: [package.json]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-draft
+  cancel-in-progress: false
+
+jobs:
+  draft:
+    name: Tag and draft the release
+    if: github.repository == 'mdg-labs/fumadocs-versioning'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Read the version
+        id: version
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          if ! printf '%s' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
+            echo "::error file=package.json::version $version is not a semver version"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+          case "$version" in
+            *-*) echo "prerelease=true" >> "$GITHUB_OUTPUT" ;;
+            *) echo "prerelease=false" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      - name: Tag the commit and draft the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+          PRERELEASE: ${{ steps.version.outputs.prerelease }}
+        run: |
+          if existing="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" --jq .object.sha 2>/dev/null)"; then
+            echo "::notice::$TAG already exists (at $existing); nothing to draft"
+            exit 0
+          fi
+
+          gh api "repos/$GITHUB_REPOSITORY/git/refs" -f "ref=refs/tags/$TAG" -f "sha=$GITHUB_SHA" > /dev/null
+          echo "Tagged $GITHUB_SHA as $TAG"
+
+          flags=(--draft --verify-tag --generate-notes --title "$TAG")
+          if [ "$PRERELEASE" = true ]; then flags+=(--prerelease); fi
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" "${flags[@]}"
+          echo "::notice::Drafted $TAG; publish the draft to release it to npm"

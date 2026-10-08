@@ -55,5 +55,5 @@ jobs:
           test -f docs/0.9/guide/legacy-config/index.html
           grep -q 'data-version-banner="unreleased"' docs/next/index.html
           grep -q 'data-version-banner="unmaintained"' docs/0.9/index.html
-          ! grep -q 'data-version-banner' docs/index.html
+          if grep -q 'data-version-banner' docs/index.html; then echo 'the last version shows a banner'; exit 1; fi
           grep -q 'noindex' docs/next/index.html
