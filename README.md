@@ -19,6 +19,14 @@ npm install fumadocs-versioning
 
 Requires `fumadocs-core` and `fumadocs-ui` 16.16 or later, and `fumadocs-mdx` for the collections below.
 
+## Agent skill
+
+If an AI coding agent (Claude Code, Cursor, etc.) works on your docs, install the [`fumadocs-versioning` skill](skills/fumadocs-versioning/SKILL.md). It tells the agent how to set the package up, when to cut a version, where doc fixes go, and what each build error means:
+
+```sh
+npx skills add mdg-labs/fumadocs-versioning --skill fumadocs-versioning
+```
+
 ## Set up
 
 ### 1. Collections
