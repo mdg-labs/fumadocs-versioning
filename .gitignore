@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.tgz
+example/.next/
+example/out/
+example/.source/
+example/next-env.d.ts

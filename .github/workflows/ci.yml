@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test, typecheck and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      # Build first: the CLI test runs the built command.
+      - run: npm run build
+      - run: npm test
+      # The package as it would be published: only dist/, README and LICENSE.
+      - run: npm pack --dry-run
+
+  example:
+    name: Example static export
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm run build --workspace example
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+      # The Docusaurus layout: the last version at /docs, the current docs at
+      # /docs/next, older versions below their name.
+      - name: Check the exported layout
+        working-directory: example/out
+        run: |
+          set -eu
+          test -f docs/index.html
+          test -f docs/next/index.html
+          test -f docs/0.9/guide/legacy-config/index.html
+          grep -q 'data-version-banner="unreleased"' docs/next/index.html
+          grep -q 'data-version-banner="unmaintained"' docs/0.9/index.html
+          ! grep -q 'data-version-banner' docs/index.html
+          grep -q 'noindex' docs/next/index.html

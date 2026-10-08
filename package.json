@@ -1,0 +1,83 @@
+{
+  "name": "fumadocs-versioning",
+  "version": "0.1.0",
+  "description": "Docusaurus-style versioned docs for Fumadocs: a snapshot CLI, versions.json, /docs/next, a version dropdown that keeps your page, and version banners",
+  "license": "MIT",
+  "author": "mdg-labs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mdg-labs/fumadocs-versioning.git"
+  },
+  "bugs": "https://github.com/mdg-labs/fumadocs-versioning/issues",
+  "keywords": [
+    "fumadocs",
+    "docusaurus",
+    "versioning",
+    "versioned-docs",
+    "documentation",
+    "nextjs"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "bin": {
+    "fumadocs-versioning": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./ui": {
+      "types": "./dist/ui.d.ts",
+      "import": "./dist/ui.js"
+    },
+    "./search": {
+      "types": "./dist/search.d.ts",
+      "import": "./dist/search.js"
+    },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "import": "./dist/client.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "workspaces": [
+    "example"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && chmod +x dist/cli.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prepack": "npm run build"
+  },
+  "peerDependencies": {
+    "fumadocs-core": ">=16.16.0 <17",
+    "fumadocs-ui": ">=16.16.0 <17",
+    "react": ">=19"
+  },
+  "peerDependenciesMeta": {
+    "fumadocs-ui": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "26.6.4",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "fumadocs-core": "16.16.2",
+    "fumadocs-ui": "16.16.2",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "typescript": "5.9.3",
+    "vitest": "5.0.3"
+  },
+  "engines": {
+    "node": ">=20.11"
+  }
+}
