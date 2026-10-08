@@ -1,6 +1,6 @@
 {
   "name": "fumadocs-versioning",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Docusaurus-style versioned docs for Fumadocs: a snapshot CLI, versions.json, /docs/next, a version dropdown that keeps your page, and version banners",
   "license": "MIT",
   "author": "mdg-labs",
